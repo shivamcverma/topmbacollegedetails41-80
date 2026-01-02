@@ -39,17 +39,38 @@ def root():
 def get_all_data():
     return load_data()
 
-
 @app.get("/mba_colleges_details_41_80/{section}")
 def get_section(section: str):
     payload = load_data()
-    data = payload["data"]
+    colleges = payload["data"]   # LIST
 
-    if section not in data:
+    SECTION_ALIASES = {
+        "course": "courses",
+        "courses": "courses",
+        "fee": "fees",
+        "fees": "fees",
+        "review": "reviews",
+        "reviews": "reviews",
+        "admission": "admission",
+        "placement": "placement",
+        "ranking": "ranking",
+        "gallery": "gallery",
+        "faculty": "faculty",
+        "scholarship": "scholarships",
+        "scholarships": "scholarships"
+    }
+
+    section_key = SECTION_ALIASES.get(section.lower())
+    if not section_key:
+        raise HTTPException(status_code=404, detail="Invalid section")
+
+    result = []
+
+    for college in colleges:
+        if section_key in college:
+            result.append(college[section_key])
+
+    if not result:
         raise HTTPException(status_code=404, detail="Section not found")
 
-    return {
-        "last_updated": payload["last_updated"],
-        "section": section,
-        "data": data[section]
-    }
+    return result
