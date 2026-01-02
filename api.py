@@ -45,6 +45,7 @@ def get_section(section: str):
     colleges = payload["data"]   # LIST
 
     SECTION_ALIASES = {
+        "college_info":"college_info",
         "course": "courses",
         "courses": "courses",
         "fee": "fees",
@@ -53,12 +54,16 @@ def get_section(section: str):
         "reviews": "reviews",
         "admission": "admission",
         "placement": "placement",
+        "cut_off":"cut_off",
         "ranking": "ranking",
         "gallery": "gallery",
+        "hotel_campus":"hotel_campus",
         "faculty": "faculty",
+        "compare":"compare",
         "scholarship": "scholarships",
         "scholarships": "scholarships"
     }
+
 
     section_key = SECTION_ALIASES.get(section.lower())
     if not section_key:
