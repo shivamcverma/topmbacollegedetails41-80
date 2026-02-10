@@ -129,7 +129,6 @@ def scroll_to_bottom(driver, scroll_times=3, pause=1.5):
 
 def scrape_college_info(driver,URLS):
     import re 
-    import selenium
     try:
         driver.get(URLS["college_info"])
     except selenium.common.exceptions.InvalidSessionIdException:
@@ -209,11 +208,22 @@ def scrape_college_info(driver,URLS):
     data["college_info"]["college_name"] = driver.find_element(By.TAG_NAME, "h1").text.strip()
 
     # ================= LOCATION + CITY =================
-    loc = driver.find_element(By.CSS_SELECTOR, "span.f90eb6").text
-    if "," in loc:
-        l, c = loc.split(",", 1)
-        data["college_info"]["location"] = l.strip()
-        data["college_info"]["city"] = c.strip()
+
+    wait = WebDriverWait(driver, 15)
+
+    try:
+        loc = wait.until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "span.f90eb6"))
+        ).text
+
+        if "," in loc:
+            l, c = loc.split(",", 1)
+            data["college_info"]["location"] = l.strip()
+        else:
+            data["college_info"]["location"] = loc.strip()
+
+    except TimeoutException:
+        data["college_info"]["location"] = None
 
     # ================= RATING =================
     try:
@@ -8583,12 +8593,15 @@ def parse_faculty_reviews(driver,URLS):
         driver.get(URLS["faculty"])
     wait = WebDriverWait(driver, 15)
 
-    section = wait.until(
-        EC.presence_of_element_located(
-            (By.XPATH, "//h2[contains(text(),'Faculty Reviews')]/ancestor::section")
+    try:
+        section = wait.until(
+            EC.presence_of_element_located(
+                (By.XPATH, "//h2[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'faculty')]")
+            )
         )
-    )
-
+    except TimeoutException:
+        print("⚠️ Faculty Reviews section not found, skipping")
+        return []
     driver.execute_script(
         "arguments[0].scrollIntoView({block:'center'});", section
     )
@@ -9337,7 +9350,6 @@ def scrape_mba_colleges():
         driver.quit()
 
     return all_data
-
 
 
 import os
